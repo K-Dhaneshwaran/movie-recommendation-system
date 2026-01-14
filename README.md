@@ -13,6 +13,12 @@ that suggests similar movies using content-based filtering.
 - Python
 - Pandas, Scikit-learn
 - Streamlit
+
+- NOTE:
+The trained similarity model file (similarity.pkl) is not included in this repository
+because it exceeds GitHub's file size limit.
+To run the project locally, generate the model by running train_model.py first.
+
 - TMDB API
 
 ## How to Run
