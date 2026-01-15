@@ -3,6 +3,7 @@ import pickle
 import requests
 from dotenv import load_dotenv
 import os
+import numpy as np
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
@@ -41,12 +42,13 @@ st.set_page_config(
 
 # ---------------- LOAD MODEL FILES ----------------
 movies = pickle.load(open("movies_list.pkl", "rb"))
-similarity = pickle.load(open("similarity.pkl", "rb"))
+similarity = pickle.load(open("similarity_reduced.pkl","rb"))
 
 
 
 
 
+@st.cache_data(show_spinner=False)
 def fetch_poster(movie_id):
     try:
         url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=23d0eb31f08099e584b23f27aa9fd6cf&language=en-US"
@@ -70,22 +72,22 @@ def fetch_poster(movie_id):
 
 # ---------------- RECOMMENDER ----------------
 def recommend(movie):
-    index = movies[movies["title"] == movie].index[0]
-    distances = sorted(
-        list(enumerate(similarity[index])),
-        reverse=True,
-        key=lambda x: x[1]
-    )
+    try:
+        movie_index = movies[movies['title'] == movie].index[0]
+    except:
+        return ["Movie not found"], ["No poster"]
 
     rec_movies = []
     rec_posters = []
 
-    for i in distances[1:6]:
-        movie_id = movies.iloc[i[0]]['movie_id']
-        rec_movies.append(movies.iloc[i[0]].title)
+    for idx, score in similarity[movie_index]:
+        movie_id = movies.iloc[idx]['movie_id']
+        rec_movies.append(str(movies.iloc[idx]['title']))
         rec_posters.append(fetch_poster(movie_id))
 
     return rec_movies, rec_posters
+
+
 
 # ---------------- UI ----------------
 st.markdown(
@@ -101,9 +103,9 @@ st.write("")
 
 if st.button("✨ Show Recommendations"):
     with st.spinner("Fetching recommendations..."):
-        names, posters = recommend(selected_movie)
+        names, posters = recommend(str(selected_movie))
 
-    names, posters = recommend(selected_movie)
+
 
     cols = st.columns(5)
     for i in range(5):
