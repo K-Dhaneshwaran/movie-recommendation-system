@@ -52,6 +52,23 @@ vectors = cv.fit_transform(new_df['tags']).toarray()
 similarity = cosine_similarity(vectors)
 
 pickle.dump(new_df, open("movies_list.pkl","wb"))
-pickle.dump(similarity, open("similarity.pkl","wb"))
+import numpy as np
+
+TOP_K = 20
+reduced_similarity = []
+
+for i in range(len(similarity)):
+    sims = list(enumerate(similarity[i]))
+    sims = sorted(sims, key=lambda x: x[1], reverse=True)[1:TOP_K+1]
+    reduced_similarity.append(sims)
+
+# reduce float size
+for i in range(len(reduced_similarity)):
+    reduced_similarity[i] = [(idx, np.float16(score)) for idx, score in reduced_similarity[i]]
+
+pickle.dump(reduced_similarity, open("similarity_reduced.pkl", "wb"))
+
+print("✅ similarity_reduced.pkl created")
+
 
 print("✅ Model files created!")
